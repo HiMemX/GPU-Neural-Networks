@@ -17,7 +17,7 @@ layout(std430, binding = 2) buffer dC_dN{
 uniform int nodeCount;
 
 float CostDerivative(float expect, float actual_output){
-    return 2*(expect - actual_output);
+    return -2*(expect - actual_output);
 }
 
 // Calculates dC/dN for the last layer to initiate the backpropogation

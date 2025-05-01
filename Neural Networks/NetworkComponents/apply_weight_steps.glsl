@@ -24,5 +24,5 @@ void main(){
 
 	uint index = nodeB_index * incomingNodeCount + nodeA_index;
 
-	weights[index] += step * weight_adjustments[index];
+	weights[index] -= step * weight_adjustments[index];
 }

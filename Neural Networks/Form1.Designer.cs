@@ -38,16 +38,16 @@
             this.glControlPanel.Location = new System.Drawing.Point(0, 0);
             this.glControlPanel.Margin = new System.Windows.Forms.Padding(2);
             this.glControlPanel.Name = "glControlPanel";
-            this.glControlPanel.Size = new System.Drawing.Size(477, 405);
+            this.glControlPanel.Size = new System.Drawing.Size(255, 405);
             this.glControlPanel.TabIndex = 0;
             // 
             // debugTextBox
             // 
             this.debugTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.debugTextBox.Location = new System.Drawing.Point(477, 0);
+            this.debugTextBox.Location = new System.Drawing.Point(255, 0);
             this.debugTextBox.Multiline = true;
             this.debugTextBox.Name = "debugTextBox";
-            this.debugTextBox.Size = new System.Drawing.Size(192, 405);
+            this.debugTextBox.Size = new System.Drawing.Size(414, 405);
             this.debugTextBox.TabIndex = 1;
             // 
             // Form1

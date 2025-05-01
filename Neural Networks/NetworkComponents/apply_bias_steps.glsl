@@ -19,5 +19,5 @@ void main(){
 
     if(node_index >= nodeCount){return;}
 
-	biases[node_index] += step * bias_adjustments[node_index];
+	biases[node_index] -= step * bias_adjustments[node_index];
 }

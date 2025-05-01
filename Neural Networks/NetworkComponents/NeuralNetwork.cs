@@ -102,6 +102,7 @@ namespace Neural_Networks.NetworkComponents
             return error / (float)outputs.Length;
         }
 
+
         public void Train(List<TrainingExample> examples, float learnrate, int iterationcount)
         {
             for (int i = 0; i < iterationcount; i++) Train(examples, learnrate);
@@ -123,7 +124,7 @@ namespace Neural_Networks.NetworkComponents
             reset_bias_steps.Use();
             for (int l = 1; l < layers.Length; l++) // Order doesn't matter :)
             {
-                calculate_bias_steps.SetInt("nodeCount", layers[l].nodeCount);
+                reset_bias_steps.SetInt("nodeCount", layers[l].nodeCount);
                 GL.BindBufferBase(rangeTarget, 0, layers[l].bias_adjustments_ssbo);
 
                 GL.DispatchCompute((layers[l].nodeCount + 63) / 64, 1, 1);
@@ -133,8 +134,8 @@ namespace Neural_Networks.NetworkComponents
             reset_weight_steps.Use();
             for (int l = 1; l < layers.Length; l++) // Order doesn't matter :)
             {
-                calculate_bias_steps.SetInt("nodeCount", layers[l].nodeCount);
-                calculate_bias_steps.SetInt("incomingNodeCount", layers[l - 1].nodeCount);
+                reset_weight_steps.SetInt("nodeCount", layers[l].nodeCount);
+                reset_weight_steps.SetInt("incomingNodeCount", layers[l - 1].nodeCount);
                 GL.BindBufferBase(rangeTarget, 0, layers[l].weight_adjustments_ssbo);
 
                 GL.DispatchCompute((layers[l - 1].nodeCount + 31) / 32, (layers[l].nodeCount + 31) / 32, 1);
