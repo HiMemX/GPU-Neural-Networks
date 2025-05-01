@@ -29,5 +29,13 @@ namespace Neural_Networks.NetworkComponents
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, expected_output_ssbo);
             GL.BufferData(BufferTarget.ShaderStorageBuffer, expected_outputs.Length * sizeof(float), expected_outputs, BufferUsageHint.StaticDraw);
         }
+
+        public void WriteToInput(float[] inputs) {
+            this.inputs = inputs;
+
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, input_ssbo);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, inputs.Length * sizeof(float), inputs, BufferUsageHint.StaticDraw);
+
+        }
     }
 }

@@ -32,13 +32,13 @@ namespace Neural_Networks.NetworkComponents
             float[] weights = new float[incomingNodeCount * nodeCount];
             for (int w = 0; w < incomingNodeCount * nodeCount; w++)
             {
-                weights[w] = (float)(rng.NextDouble() - 0.5) / 1.0f;// Only slight randomization
+                weights[w] = (float)(rng.NextDouble() - 0.5) / 1f;// Only slight randomization
             }
 
             float[] biases = new float[nodeCount];
             for(int b=0; b<nodeCount; b++)
             {
-                biases[b] = (float)(rng.NextDouble() - 0.5) / 1.0f;
+                biases[b] = (float)(rng.NextDouble() - 0.5) / 1f;
             }
 
             output_ssbo = GL.GenBuffer();

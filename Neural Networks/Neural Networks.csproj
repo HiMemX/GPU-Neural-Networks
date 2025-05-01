@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BinaryReaderEndian.cs" />
+    <Compile Include="DoubleBufferedPanel.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
