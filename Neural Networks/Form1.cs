@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -36,18 +37,28 @@ namespace Neural_Networks
         public void Run()
         {
 
-            NeuralNetwork network = new NeuralNetwork(new int[] { 1, 1, 1});
+            NeuralNetwork network = new NeuralNetwork(new int[] { 2, 2, 2});
 
-            network.WriteInputs(new float[] { 0 });
+            List<TrainingExample> examples = new List<TrainingExample>
+            {
+                new TrainingExample(new float[]{0,0 }, new float[] { 0,0}),
+                new TrainingExample(new float[]{0,1 }, new float[] { 0,1}),
+                new TrainingExample(new float[]{1,0 }, new float[] { 1,0}),
+                new TrainingExample(new float[]{1,1 }, new float[] { 1,1}),
+            };
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            network.Evaluate();
-            watch.Stop();
-            var elapsedMs = watch.ElapsedMilliseconds;
+            Stopwatch stopwatch = new Stopwatch();
+            for(int i=0; i<10; i++)
+            {
+                stopwatch.Reset();
+                stopwatch.Start();
+                network.Train(examples, 1f, 100);
+                stopwatch.Stop();
 
-            float[] result = network.ReadOutput();
-
-            MessageBox.Show(String.Join(", ", result.Take(20)), elapsedMs.ToString());
+                debugTextBox.AppendText(i.ToString() + ": " + network.GetAverageError(examples).ToString() + ", took " + stopwatch.ElapsedMilliseconds.ToString() + "ms\r\n");
+            }
+            
+            //MessageBox.Show(String.Join(", ", result.Take(20)), elapsedMs.ToString());
         }
 
         protected override void OnLoad(EventArgs e)

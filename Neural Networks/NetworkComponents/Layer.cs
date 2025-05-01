@@ -85,5 +85,7 @@ namespace Neural_Networks.NetworkComponents
             GL.UnmapBuffer(BufferTarget.ShaderStorageBuffer);
             return data;
         }
+
+        
     }
 }

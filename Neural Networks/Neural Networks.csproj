@@ -58,13 +58,22 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <None Include="NetworkComponents\calculate_bias_steps.glsl" />
+    <None Include="NetworkComponents\apply_bias_steps.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="NetworkComponents\apply_weight_steps.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="NetworkComponents\calculate_bias_steps.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="NetworkComponents\calculate_dCdN.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Compile Include="NetworkComponents\Layer.cs" />
     <Compile Include="NetworkComponents\NeuralNetwork.cs" />
     <Compile Include="NetworkComponents\Neuron.cs" />
+    <Compile Include="NetworkComponents\TrainingExample.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shader.cs" />
@@ -83,8 +92,16 @@
     <None Include="NetworkComponents\calculate_dCdN_lastlayer.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="NetworkComponents\calculate_weight_steps.glsl" />
+    <None Include="NetworkComponents\calculate_weight_steps.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="NetworkComponents\layerComputeShader.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="NetworkComponents\reset_bias_steps.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="NetworkComponents\reset_weight_steps.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="OpenTK.dll.config" />

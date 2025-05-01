@@ -10,11 +10,11 @@ layout(std430, binding = 1) buffer Weights{ // Weights connecting the 2 layers
 	float weights[];
 };
 
-layout(std430, binding = 2) buffer dCdN{ // Values will be calculated and stored in here
+layout(std430, binding = 2) buffer dC_dN{ // Values will be calculated and stored in here
     float dCdN[];
 };
 
-layout(std430, binding = 3) buffer dCdN_NextLayer{ // This is the dCdN of the NEXT Layer, meaning the one that was already calculated.
+layout(std430, binding = 3) buffer dC_dN_NextLayer{ // This is the dCdN of the NEXT Layer, meaning the one that was already calculated.
     float dCdN_NextLayer[];
 };
 

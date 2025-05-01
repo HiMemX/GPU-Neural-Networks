@@ -10,18 +10,14 @@ layout(std430, binding = 1) buffer Outputs{
 	float outputs[];
 };
 
-layout(std430, binding = 2) buffer dCdN{
+layout(std430, binding = 2) buffer dC_dN{
     float dCdN[];
 };
 
 uniform int nodeCount;
 
-float Activation(float x){
-    return 1 / (1 + exp(-x));
-}
-
-float CostDerivative(float expect, float output){
-    return 2*(expect - output);
+float CostDerivative(float expect, float actual_output){
+    return 2*(expect - actual_output);
 }
 
 // Calculates dC/dN for the last layer to initiate the backpropogation

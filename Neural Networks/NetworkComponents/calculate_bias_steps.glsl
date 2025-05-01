@@ -6,7 +6,7 @@ layout(std430, binding = 0) buffer OutputDerivatives{ // WeightMatrix * Layer, w
 	float output_derivatives[];
 };
 
-layout(std430, binding = 1) buffer dCdN{ // dCdN of the nodes we are processing the biases for
+layout(std430, binding = 1) buffer dC_dN{ // dCdN of the nodes we are processing the biases for
 	float dCdN[];
 };
 
@@ -15,11 +15,12 @@ layout(std430, binding = 2) buffer BiasAdjustments{
 };
 
 uniform int nodeCount;
+uniform float step;
 
 void main(){
     uint node_index = gl_GlobalInvocationID.x;
 
     if(node_index >= nodeCount){return;}
 
-	bias_adjustments[node_index] += dCdN[node_index] * output_derivatives[node_index];
+	bias_adjustments[node_index] += step * dCdN[node_index] * output_derivatives[node_index];
 }

@@ -83,7 +83,7 @@ namespace Neural_Networks
             if (success == 0)
             {
                 string infoLog = GL.GetShaderInfoLog(VertexShader);
-                MessageBox.Show(infoLog);
+                MessageBox.Show(infoLog, computePath);
             }
 
             // Attach
@@ -97,7 +97,7 @@ namespace Neural_Networks
             if (success == 0)
             {
                 string infoLog = GL.GetProgramInfoLog(Handle);
-                MessageBox.Show(infoLog);
+                //MessageBox.Show(infoLog);
             }
 
             // Cleanup
@@ -111,6 +111,11 @@ namespace Neural_Networks
         {
             GL.Uniform1(GL.GetUniformLocation(Handle, name), i);
         }
+        public void SetFloat(string name, float f)
+        {
+            GL.Uniform1(GL.GetUniformLocation(Handle, name), f);
+        }
+
 
         public void Use()
         {
