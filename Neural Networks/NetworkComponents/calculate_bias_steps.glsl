@@ -1,6 +1,6 @@
 #version 430
 
-layout(local_size_x = 64) in;
+layout(local_size_x = 128) in;
 
 layout(std430, binding = 0) buffer OutputDerivatives{ // WeightMatrix * Layer, where layer is the layer to the left
 	float output_derivatives[];

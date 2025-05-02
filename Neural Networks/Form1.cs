@@ -25,9 +25,14 @@ namespace Neural_Networks
         int VertexBufferObject;
         int VertexArrayObject;
         float[] vertices = {
-            -0.5f, -0.5f, 0.0f, //Bottom-left vertex
-             0.5f, -0.5f, 0.0f, //Bottom-right vertex
-             0.0f,  0.5f, 0.0f  //Top vertex
+            -1f, -1f, 0.0f, //Bottom-left vertex
+             1f, -1f, 0.0f, //Bottom-right vertex
+             -1f,  1f, 0.0f,  //Top left vertex
+             
+             1f, -1f, 0.0f, //Bottom-right vertex
+             1f,  1f, 0.0f  //Top right vertex
+             -1f,  1f, 0.0f,  //Top left vertex
+             
         };
 
         NeuralNetwork network;
@@ -73,16 +78,40 @@ namespace Neural_Networks
 
         }
 
+
+        private void Shuffle(List<TrainingExample> list)
+        {
+            Random rng = new Random();
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                TrainingExample value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+
         public void SetupNetwork()
         {
-            network = new NeuralNetwork(new int[] { 28 * 28, 500, 100, 10 });
+            network = new NeuralNetwork(new int[] { 28 * 28,300, 10 });
             canvas = new TrainingExample(new float[28 * 28], new float[10]);
 
+            SetupMNISTDigits();
+        }
+
+        public void SetupMNISTDigits()
+        {
             int testcount = 100;
 
             trainingexamples = ReadMNISTExamples("C:\\Users\\felix\\Desktop\\Random_Stuff\\MNIST_Numbers\\", "train-images.dat", "train-labels.dat");
             alltestexamples = ReadMNISTExamples("C:\\Users\\felix\\Desktop\\Random_Stuff\\MNIST_Numbers\\", "test-images.dat", "test-labels.dat");
+
+            Shuffle(alltestexamples);
             testexamples = alltestexamples.GetRange(0, testcount);
+
+            Shuffle(trainingexamples);
 
         }
 
@@ -140,10 +169,36 @@ namespace Neural_Networks
                     }
                 }
 
-                examples.Add(new TrainingExample(image, Decode(10, labels[i])));
+                examples.Add(new TrainingExample(Randomize(image), Decode(10, labels[i])));
             }
 
             return examples;
+        }
+
+        public float[] Randomize(float[] input)
+        {
+            Random rng = new Random();
+            int xoffset = rng.Next(10) - 5;
+            int yoffset = rng.Next(10) - 5;
+
+            float[] output = new float[input.Length];
+            float value;
+            float xcord;
+            float ycord;
+            for(int x=0; x<28; x++) {
+                for (int y = 0; y < 28; y++)
+                {
+                    value = 0;
+                    xcord = x + xoffset;
+                    ycord = y + yoffset;
+                    if (!((ycord < 0 || ycord >= 28) || (xcord < 0 || xcord >= 28))) {
+                        value = input[(y + yoffset) * 28 + x + xoffset];
+                    } 
+                    output[y * 28 + x] = Math.Max(0, Math.Min(1.0f, value + ((float)Math.Pow(rng.NextDouble(),2) - 0.5f) / 6.0f));
+                }
+            }
+
+            return output;
         }
 
         public async void Run()
@@ -151,7 +206,7 @@ namespace Neural_Networks
 
             
             
-            int batchcount = 100;
+            int batchcount = 1000;
             int batchsize = trainingexamples.Count / batchcount;
             List<List<TrainingExample>> batches = new List<List<TrainingExample>>();
             for (int b=0; b<batchcount; b++)
@@ -167,12 +222,12 @@ namespace Neural_Networks
                 {
                     stopwatch.Reset();
                     stopwatch.Start();
-                    network.Train(batches[b], 0.0020f);
+                    network.Train(batches[b], 0.02f);
                     stopwatch.Stop();
 
-                    if(b % 10 != 0) { continue; }
+                    if(b % 300 != 0) { continue; }
 
-                    debugTextBox.AppendText(i.ToString() + ", " + b.ToString() + ": " + network.GetAverageError(testexamples).ToString() + ", took " + stopwatch.ElapsedMilliseconds.ToString() + "ms\r\n");
+                    debugTextBox.AppendText(i.ToString() + ", " + b.ToString() + ": " + network.GetAverageError(testexamples).ToString() + "\r\n");
 
                     debugTextBox.SelectionStart = debugTextBox.Text.Length;
                     debugTextBox.ScrollToCaret();
@@ -187,7 +242,7 @@ namespace Neural_Networks
                 for (int k=0; k<testexamples.Count; k++)
                 {
                     network.SetInput(testexamples[k].input_ssbo);
-                    network.Evaluate();
+                    network.Evaluate(false);
                     output = network.ReadOutput();
 
                     largestindex = 0;
@@ -229,9 +284,10 @@ namespace Neural_Networks
         public void UpdatePrediction()
         {
             // Upload data to training example
-            float avrgx = 0;
-            float avrgy = 0;
+
             float sum = 0;
+            /*float avrgx = 0;
+            float avrgy = 0;
 
             for (int x = 0; x < 28; x++)
             {
@@ -245,8 +301,8 @@ namespace Neural_Networks
             }
             int xoffset = (int)(avrgx / sum)  -14;
             int yoffset = (int)(avrgy / sum) -14;
-
-            debugTextBox.AppendText(xoffset + ", " + yoffset + "\r\n\r\n");
+            */
+            //debugTextBox.AppendText(xoffset + ", " + yoffset + "\r\n\r\n");
 
             int xcord;
             int ycord;
@@ -254,8 +310,8 @@ namespace Neural_Networks
             for(int x=0; x<28; x++) {
                 for (int y= 0; y < 28; y++)
                 {
-                    xcord = x - xoffset;
-                    ycord = y - yoffset;
+                    xcord = x - 0;
+                    ycord = y - 0;
 
                     if (xcord < 0 || xcord >= 28) continue;
                     if (ycord < 0 || ycord >= 28) continue;
@@ -268,7 +324,12 @@ namespace Neural_Networks
             canvas.WriteToInput(image);
 
             network.SetInput(canvas.input_ssbo);
-            network.Evaluate();
+            network.Evaluate(false);
+
+            glControl.Invalidate();
+
+            return;
+
             float[] outputs = network.ReadOutput();
             sum = 0;
 
@@ -320,7 +381,6 @@ namespace Neural_Networks
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
             SetupNetwork();
-            //Run();
         }
 
 
@@ -338,8 +398,10 @@ namespace Neural_Networks
             GL.Clear(ClearBufferMask.ColorBufferBit);                // Clear any prior drawing.
 
             shader.Use();
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, network.layers.Last().output_ssbo);
+            GL.Uniform1(GL.GetUniformLocation(shader.Handle, "width"), (float)glControlPanel.Width);
             GL.BindVertexArray(VertexArrayObject);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
+            GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 6);
 
 
             glControl.SwapBuffers();    // Display the result.
@@ -413,9 +475,9 @@ namespace Neural_Networks
 
             Color c = Color.White;
 
-            Color c1 = ScaleColor(c, 0.1f);
-            Color c2 = ScaleColor(c, 0.4f);
-            Color c3 = ScaleColor(c, 0.75f);
+            Color c1 = ScaleColor(c, 0.0f);
+            Color c2 = ScaleColor(c, 0.0f);
+            Color c3 = ScaleColor(c, 0.0f);
 
 
 
@@ -424,16 +486,17 @@ namespace Neural_Networks
             BlendPixel(x, y+1, c2);
             BlendPixel(x+1, y+1, c3);
 
-            BlendPixel(x - 1, y, c2);
-            BlendPixel(x, y - 1, c2);
-            BlendPixel(x - 1, y - 1, c3);
+            //BlendPixel(x - 1, y, c2);
+            //BlendPixel(x, y - 1, c2);
+            //BlendPixel(x - 1, y - 1, c3);
 
-            BlendPixel(x - 1, y + 1, c3);
-            BlendPixel(x + 1, y - 1, c3);
+            //BlendPixel(x - 1, y + 1, c3);
+            //BlendPixel(x + 1, y - 1, c3);
 
             drawingPanel.Invalidate(); // Redraw
             UpdatePrediction();
             old = e.Location;
+
         }
 
         private void SetPixel(int x, int y, Color c)
@@ -489,6 +552,60 @@ namespace Neural_Networks
 
             drawingPanel.Invalidate();
             UpdatePrediction();
+        }
+
+        private void saveButton_Click(object sender, EventArgs e)
+        {
+
+            using (SaveFileDialog saveDialog = new SaveFileDialog())
+            {
+                saveDialog.Title = "Save Network";
+                saveDialog.Filter = "Data files (*.dat)|*.dat|All files (*.*)|*.*";
+                saveDialog.DefaultExt = "dat";
+
+                if (saveDialog.ShowDialog() == DialogResult.OK)
+                {
+                    BinaryWriterEndian file = new BinaryWriterEndian(saveDialog.FileName, false);
+                    try
+                    {
+                        network.Serialize(file);
+                        MessageBox.Show("File saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error saving file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    file.Close();
+                }
+            }
+        }
+
+        private void loadButton_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openDialog = new OpenFileDialog())
+            {
+                openDialog.Title = "Open a File";
+                openDialog.Filter = "All Files (*.*)|*.*";
+                openDialog.Multiselect = false;
+
+                if (openDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string selectedFile = openDialog.FileName;
+                    BinaryReaderEndian file = new BinaryReaderEndian(openDialog.FileName, false);
+                    try
+                    {
+                        network = new NeuralNetwork(file);
+                        MessageBox.Show($"File loaded: {selectedFile}",
+                            "File Loaded", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error reading file: {ex.Message}",
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    file.Close();
+                }
+            }
         }
     }
     

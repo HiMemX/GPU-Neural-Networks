@@ -135,5 +135,15 @@ namespace Neural_Networks
         }
 
 
+        public float ReadFloat32E()
+        {
+            byte[] value = ReadBytes(4);
+            if (endianness)
+                return BitConverter.ToSingle(value,0);
+            Array.Reverse(value);
+            return BitConverter.ToSingle(value, 0); ;
+        }
+
+
     }
 }

@@ -41,6 +41,11 @@ namespace Neural_Networks.NetworkComponents
                 biases[b] = (float)(rng.NextDouble() - 0.5) / 1f;
             }
 
+            SetupBuffers(weights, biases);
+        }
+
+        public void SetupBuffers(float[] weights, float[] biases)
+        {
             output_ssbo = GL.GenBuffer();
             output_derivative_ssbo = GL.GenBuffer();
             biases_ssbo = GL.GenBuffer();
@@ -70,6 +75,45 @@ namespace Neural_Networks.NetworkComponents
             WriteToOutput(new float[nodeCount]);
         }
 
+        public void Serialize(BinaryWriterEndian file)
+        {
+            file.WriteE((uint)nodeCount);
+            file.WriteE((uint)incomingNodeCount);
+
+            float[] weights = ReadSSBO(weights_ssbo, nodeCount * incomingNodeCount);
+            float[] biases = ReadSSBO(biases_ssbo, nodeCount);
+
+            foreach(float weight in weights)
+            {
+                file.WriteE(weight);
+            }
+
+            foreach (float bias in biases)
+            {
+                file.WriteE(bias);
+            }
+        }
+
+        public Layer(BinaryReaderEndian file)
+        {
+            nodeCount = file.ReadInt32E();
+            incomingNodeCount = file.ReadInt32E();
+
+            float[] weights = new float[incomingNodeCount * nodeCount];
+            for (int w = 0; w < incomingNodeCount * nodeCount; w++)
+            {
+                weights[w] = file.ReadFloat32E();// Only slight randomization
+            }
+
+            float[] biases = new float[nodeCount];
+            for (int b = 0; b < nodeCount; b++)
+            {
+                biases[b] = file.ReadFloat32E();
+            }
+
+            SetupBuffers(weights, biases);
+        }
+
         public void WriteToOutput(float[] outputs) // Method to be called for starting nodes
         {
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, output_ssbo);
@@ -86,6 +130,19 @@ namespace Neural_Networks.NetworkComponents
             return data;
         }
 
+        public float[] ReadSSBO(int ssbo, int count)
+        {
+            try {
+                GL.BindBuffer(BufferTarget.ShaderStorageBuffer, ssbo);
+                IntPtr ptr = GL.MapBuffer(BufferTarget.ShaderStorageBuffer, BufferAccess.ReadOnly);
+                float[] data = new float[count];
+                Marshal.Copy(ptr, data, 0, count);
+                GL.UnmapBuffer(BufferTarget.ShaderStorageBuffer);
+                return data;
+            }
+            catch { return new float[0]; }
+        }
+        
         
     }
 }

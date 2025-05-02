@@ -20,6 +20,9 @@ namespace Neural_Networks.NetworkComponents
         public Shader reset_bias_steps;
         public Shader reset_weight_steps;
 
+
+        Random rng = new Random();
+
         private BufferRangeTarget rangeTarget = BufferRangeTarget.ShaderStorageBuffer; // Makes the code a little shorter
 
         public NeuralNetwork(int[] dimensions)
@@ -33,15 +36,45 @@ namespace Neural_Networks.NetworkComponents
                 incomingNodeCount = dimensions[l];
             }
 
-            layerComputeShader       = new Shader("NetworkComponents/layerComputeShader.glsl");
+            SetupShaders();
+        }
+
+        public void SetupShaders()
+        {
+
+            layerComputeShader = new Shader("NetworkComponents/layerComputeShader.glsl");
             calculate_dCdN_lastlayer = new Shader("NetworkComponents/calculate_dCdN_lastlayer.glsl");
-            calculate_dCdN           = new Shader("NetworkComponents/calculate_dCdN.glsl");
-            calculate_bias_steps     = new Shader("NetworkComponents/calculate_bias_steps.glsl");
-            calculate_weight_steps   = new Shader("NetworkComponents/calculate_weight_steps.glsl");
-            apply_bias_steps         = new Shader("NetworkComponents/apply_bias_steps.glsl");
-            apply_weight_steps       = new Shader("NetworkComponents/apply_weight_steps.glsl");
-            reset_bias_steps         = new Shader("NetworkComponents/reset_bias_steps.glsl");
-            reset_weight_steps       = new Shader("NetworkComponents/reset_weight_steps.glsl");
+            calculate_dCdN = new Shader("NetworkComponents/calculate_dCdN.glsl");
+            calculate_bias_steps = new Shader("NetworkComponents/calculate_bias_steps.glsl");
+            calculate_weight_steps = new Shader("NetworkComponents/calculate_weight_steps.glsl");
+            apply_bias_steps = new Shader("NetworkComponents/apply_bias_steps.glsl");
+            apply_weight_steps = new Shader("NetworkComponents/apply_weight_steps.glsl");
+            reset_bias_steps = new Shader("NetworkComponents/reset_bias_steps.glsl");
+            reset_weight_steps = new Shader("NetworkComponents/reset_weight_steps.glsl");
+        }
+
+
+        public void Serialize(BinaryWriterEndian file)
+        {
+            file.WriteE((uint)layers.Length);
+
+            foreach(Layer layer in layers)
+            {
+                layer.Serialize(file);
+            }
+        }
+
+        public NeuralNetwork(BinaryReaderEndian file)
+        {
+            uint layerCount = file.ReadUInt32E();
+            layers = new Layer[layerCount];
+
+            for(int l=0; l<layerCount; l++)
+            {
+                layers[l] = new Layer(file);
+            }
+
+            SetupShaders();
         }
 
         public void WriteInputs(float[] inputs)
@@ -59,21 +92,24 @@ namespace Neural_Networks.NetworkComponents
             return layers[layers.Length - 1].ReadOutput();
         }
 
-        public void Evaluate()
+        public void Evaluate(bool randomize = true)
         {
             layerComputeShader.Use();
 
+            int seed = 0;
             for(int i=1; i<layers.Length; i++)
             {
                 layerComputeShader.SetInt("incomingNodeCount", layers[i-1].nodeCount);
                 layerComputeShader.SetInt("nodeCount", layers[i].nodeCount);
+                if (randomize) { seed = rng.Next() + 1; }
+                layerComputeShader.SetInt("seed", seed);
                 GL.BindBufferBase(rangeTarget, 0, layers[i - 1].output_ssbo);
                 GL.BindBufferBase(rangeTarget, 1, layers[i].weights_ssbo);
                 GL.BindBufferBase(rangeTarget, 2, layers[i].biases_ssbo);
                 GL.BindBufferBase(rangeTarget, 3, layers[i].output_derivative_ssbo);
                 GL.BindBufferBase(rangeTarget, 4, layers[i].output_ssbo);
 
-                GL.DispatchCompute((layers[i].nodeCount + 63) / 64, 1, 1);
+                GL.DispatchCompute((layers[i].nodeCount + 127) / 128, 1, 1);
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
             }
         }
@@ -127,7 +163,7 @@ namespace Neural_Networks.NetworkComponents
                 reset_bias_steps.SetInt("nodeCount", layers[l].nodeCount);
                 GL.BindBufferBase(rangeTarget, 0, layers[l].bias_adjustments_ssbo);
 
-                GL.DispatchCompute((layers[l].nodeCount + 63) / 64, 1, 1);
+                GL.DispatchCompute((layers[l].nodeCount + 127) / 128, 1, 1);
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
             }
 
@@ -151,7 +187,7 @@ namespace Neural_Networks.NetworkComponents
             GL.BindBufferBase(rangeTarget, 1, layers[layers.Length - 1].output_ssbo);
             GL.BindBufferBase(rangeTarget, 2, layers[layers.Length - 1].dCdN_ssbo);
 
-            GL.DispatchCompute((layers[layers.Length - 1].nodeCount + 63) / 64, 1, 1);
+            GL.DispatchCompute((layers[layers.Length - 1].nodeCount + 127) / 128, 1, 1);
             GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
 
             // Backpropogate (NOTE: Doesn't compute anything when no hidden layers exist)
@@ -165,7 +201,7 @@ namespace Neural_Networks.NetworkComponents
                 GL.BindBufferBase(rangeTarget, 2, layers[l].dCdN_ssbo);
                 GL.BindBufferBase(rangeTarget, 3, layers[l + 1].dCdN_ssbo);
 
-                GL.DispatchCompute((layers[l].nodeCount + 63) / 64, 1, 1);
+                GL.DispatchCompute((layers[l].nodeCount + 127) / 128, 1, 1);
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
             }
 
@@ -182,7 +218,7 @@ namespace Neural_Networks.NetworkComponents
                 GL.BindBufferBase(rangeTarget, 1, layers[l].dCdN_ssbo);
                 GL.BindBufferBase(rangeTarget, 2, layers[l].bias_adjustments_ssbo);
 
-                GL.DispatchCompute((layers[l].nodeCount + 63) / 64, 1, 1);
+                GL.DispatchCompute((layers[l].nodeCount + 127) / 128, 1, 1);
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
             }
 
@@ -213,7 +249,7 @@ namespace Neural_Networks.NetworkComponents
                 GL.BindBufferBase(rangeTarget, 0, layers[l].biases_ssbo);
                 GL.BindBufferBase(rangeTarget, 1, layers[l].bias_adjustments_ssbo);
 
-                GL.DispatchCompute((layers[l].nodeCount + 63) / 64, 1, 1);
+                GL.DispatchCompute((layers[l].nodeCount + 127) / 128, 1, 1);
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
             }
 

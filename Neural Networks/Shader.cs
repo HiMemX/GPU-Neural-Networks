@@ -11,7 +11,7 @@ namespace Neural_Networks
 {
     public class Shader
     {
-        int Handle;
+        public int Handle;
 
         public Shader(string vertexPath, string fragmentPath)
         {
